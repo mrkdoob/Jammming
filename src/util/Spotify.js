@@ -1,5 +1,6 @@
-const clientId = ''
+const clientId = '844f0265b60c4502b9eed033faf526bc'
 const corsUrl = 'https://cors-anywhere.herokuapp.com/'
+const clientSecret = '291d7056e20049e0ba12149f5bfb01f9'
 const redirectUri = 'http://localhost:3000'
 
 const grantType = 'client_credentials';
