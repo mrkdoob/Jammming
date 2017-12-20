@@ -5,17 +5,6 @@ import SearchBar from '../SearchBar/SearchBar.js'
 import SearchResults from '../SearchResults/SearchResults.js'
 import Spotify from '../../util/Spotify.js'
 
-const track = {
-  id: 122,
-  uri: 'teslldsf',
-  name: "Tiny Dancer",
-  artist: 'Elton John',
-  album: 'Madman Across The Water'
-};
-
-const tracks = [track, track, track];
-
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -37,7 +26,6 @@ class App extends Component {
     }
     let inList = false;
     this.state.playlistTracks.map(itemFromList => { //Nog even iteratie controleren
-      console.log(trackId);
       if(trackId === itemFromList.id){ //track.id?
         inList = true;
       };
@@ -86,22 +74,9 @@ class App extends Component {
   }
 
   search(search){
-    Spotify.search(search).then(test => {
-      console.log(test);
+    Spotify.search(search).then(tracks => {
+      this.setState({searchResults: tracks});
     })
-
-    let resultObject = {
-      id: track.id,
-      uri: track.uri,
-      name: track.name,
-      artist: track.artist,
-      album: track.album
-    }
-    let resultArray = this.state.searchResults;
-    resultArray.push(resultObject)
-    this.setState({searchResults: resultArray})
-      //);
-  //  });
   }
 
   render() {
