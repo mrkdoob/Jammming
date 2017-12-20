@@ -4,7 +4,7 @@ const redirectUri = 'http://localhost:3000'
 
 const grantType = 'client_credentials';
 let accessToken;
-let url = 'https://accounts.spotify.com/authorize?client_id=' + clientId + '&response_type=token&scope=playlist-modify-public&redirect_uri=' + redirectUri;
+//let url = 'https://accounts.spotify.com/authorize?client_id=' + clientId + '&response_type=token&scope=playlist-modify-public&redirect_uri=' + redirectUri;
 
 const Spotify = {
       getAccessToken() {
@@ -22,7 +22,7 @@ const Spotify = {
         window.history.pushState('Access Token', null, '/'); // This clears the parameters, allowing us to grab a new access token when it expires.
         return accessToken;
       } else {
-        const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`;
+        const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public%20playlist-modify-private&redirect_uri=${redirectUri}`;
         window.location = accessUrl;
       }
     },
@@ -63,8 +63,7 @@ const Spotify = {
           method: 'GET',
           headers: {Authorization: `Bearer ${accessToken}`}
         })
-        .then(response => { //code never reached
-          console.log('first response');
+        .then(response => {
           return response.json();
         })
       .then(jsonResponse => {
@@ -73,33 +72,32 @@ const Spotify = {
           return;
         }
         userID = jsonResponse.id;
-        console.log('user id:' + userID);
+
+        fetch(corsUrl+ 'https://api.spotify.com/v1/users/' + userID + '/playlists', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: {
+            name: playlist
+          }
+        })
+        .then(response => {
+          return response.json();
+        })
+        .then(jsonResponse => {
+          if (!jsonResponse.id){
+            console.log('No playlistID');
+            return;
+          }
+
+        playlistID = jsonResponse.id;
+        console.log('playlistID jsonresponse: ' +playlistID);
+        });
       });
-
-      console.log('reaches second POST');
-      console.log('user id at second POST:' + userID);
-
-      fetch(corsUrl+ 'https://api.spotify.com/v1/users/' + this.userID + '/playlists', { //Get playlistID
-        method: 'POST',
-        headers: {Authorization: `Bearer ${accessToken}`},
-        //Content-Type: {'application/json'},
-        body: {name: playlist}
-      })
-      .then(response => {
-        console.log('second response reached');
-        return response.json();
-      })
-    .then(jsonResponse => {
-      console.log('2nd json response reached');
-      if (!jsonResponse.id){
-        console.log('No playlistID');
-        return;
-      }
-
-      playlistID = jsonResponse.id;
-      console.log('playlistID jsonresponse: ' +playlistID);
-    });
-
+/*
     console.log('reaches third post');
 
     return fetch(corsUrl+ 'https://api.spotify.com/v1/users/' + this.userID + '/playlists/' + this.playlistID + '/tracks', {
@@ -120,7 +118,7 @@ const Spotify = {
       }
       let newPlaylistID = jsonResponse.id;
       console.log('playlistID:'+newPlaylistID);
-    });
+    });*/
   }
 }
 
