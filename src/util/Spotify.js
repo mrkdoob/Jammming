@@ -1,11 +1,7 @@
 const clientId = '844f0265b60c4502b9eed033faf526bc'
-const corsUrl = 'https://cors-anywhere.herokuapp.com/'
-const clientSecret = '291d7056e20049e0ba12149f5bfb01f9'
 const redirectUri = 'http://localhost:3000'
 
-const grantType = 'client_credentials';
 let accessToken;
-//let url = 'https://accounts.spotify.com/authorize?client_id=' + clientId + '&response_type=token&scope=playlist-modify-public&redirect_uri=' + redirectUri;
 
 const Spotify = {
       getAccessToken() {
@@ -25,6 +21,7 @@ const Spotify = {
       } else {
         const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public%20playlist-modify-private&redirect_uri=${redirectUri}`;
         window.location = accessUrl;
+        return this.getAccessToken();
       }
     },
 
@@ -50,8 +47,8 @@ const Spotify = {
       });
     },
 
-    savePlaylist(playlist, uriArray){
-      if(playlist === '' || uriArray.length === 0){ //check if arguments have value
+    savePlaylist(name, uriArray){
+      if(name === '' || uriArray.length === 0){ //check if arguments have value
         console.log('no playlist name or empty playlist array');
         return;
       }
@@ -59,31 +56,20 @@ const Spotify = {
       let userID;
       let playlistID;
       const accessToken = Spotify.getAccessToken();
+      const headers = { Authorization: `Bearer ${accessToken}`}
 
-      fetch(corsUrl+'https://api.spotify.com/v1/me', {  //retrieve userID
-          method: 'GET',
-          headers: {Authorization: `Bearer ${accessToken}`}
-        })
-        .then(response => {
-          return response.json();
-        })
-      .then(jsonResponse => {
+      return fetch('https://api.spotify.com/v1/me', {headers:headers}
+      ).then(response => response.json()
+      ).then(jsonResponse => {
         if (!jsonResponse.id){
           console.log('No user ID');
           return;
         }
         userID = jsonResponse.id;
-
-        fetch(corsUrl+ 'https://api.spotify.com/v1/users/' + userID + '/playlists', {
+        return fetch(`https://api.spotify.com/v1/users/${userID}/playlists`, {
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: {
-            name: playlist
-          }
+          headers: headers,
+          body: JSON.stringify({name: name})
         })
         .then(response => {
           return response.json();
@@ -93,34 +79,15 @@ const Spotify = {
             console.log('No playlistID');
             return;
           }
-
         playlistID = jsonResponse.id;
-        console.log('playlistID jsonresponse: ' +playlistID);
-        });
-      });
-/*
-    console.log('reaches third post');
-
-    return fetch(corsUrl+ 'https://api.spotify.com/v1/users/' + this.userID + '/playlists/' + this.playlistID + '/tracks', {
-        method: 'POST',
-        headers: {Authorization: `Bearer ${accessToken}`},
-        //Content-Type: 'application/json'},
-        body: {uris: uriArray}
-      })
-      .then(response => {
-        console.log('Third response:' + response.json());
-        return response.json();
-      })
-    .then(jsonResponse => {
-      console.log('3rd json response reached');
-      if (!jsonResponse.id){
-        console.log('no playlistid 2');
-        return;
-      }
-      let newPlaylistID = jsonResponse.id;
-      console.log('playlistID:'+newPlaylistID);
-    });*/
-  }
+        return fetch(`https://api.spotify.com/v1/users/${userID}/playlists/${playlistID}/tracks`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({uris: uriArray})
+        })
+    });
+  })
+}
 }
 
 export default Spotify;
